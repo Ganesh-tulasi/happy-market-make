@@ -1,9 +1,10 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, ShoppingBag, Truck, ShieldCheck, Heart } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/stores/cartStore";
-import { getProductByHandle, formatPrice, products } from "@/data/products";
+import { getProductByHandle, formatPrice } from "@/data/products";
+import { useProductsStore } from "@/stores/productsStore";
 import { ProductCard } from "@/components/product/ProductCard";
 import { toast } from "sonner";
 
@@ -22,21 +23,31 @@ export const Route = createFileRoute("/product/$handle")({
       ],
     };
   },
-  loader: ({ params }) => {
-    const p = getProductByHandle(params.handle);
-    if (!p) throw notFound();
-    return { p };
-  },
 });
 
 function ProductPage() {
   const { handle } = Route.useParams();
-  const product = getProductByHandle(handle)!;
+  const allProducts = useProductsStore((s) => s.products);
+  const product = allProducts.find((p) => p.handle === handle);
   const [qty, setQty] = useState(1);
   const addItem = useCartStore((s) => s.addItem);
   const setOpen = useCartStore((s) => s.setOpen);
 
-  const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+  if (!product) {
+    return (
+      <div className="container mx-auto px-4 py-20 text-center">
+        <h1 className="font-display text-4xl font-bold">Product not found</h1>
+        <p className="mt-2 text-muted-foreground">It may have been removed.</p>
+        <Link to="/" className="inline-block mt-6 rounded-full bg-gradient-primary text-primary-foreground px-6 py-3 shadow-soft">
+          Back home
+        </Link>
+      </div>
+    );
+  }
+
+  const related = allProducts
+    .filter((p) => p.category === product.category && p.id !== product.id)
+    .slice(0, 4);
 
   const handleAdd = () => {
     addItem(product, qty);
