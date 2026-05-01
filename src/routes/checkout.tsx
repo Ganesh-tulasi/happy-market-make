@@ -9,6 +9,13 @@ import { useCartStore } from "@/stores/cartStore";
 import { formatPrice } from "@/data/products";
 import { toast } from "sonner";
 
+// ✅ Razorpay type declaration
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 export const Route = createFileRoute("/checkout")({
   component: CheckoutPage,
   head: () => ({
@@ -21,6 +28,18 @@ export const Route = createFileRoute("/checkout")({
 
 type Payment = "cod" | "online";
 
+// ✅ Dynamically load Razorpay script
+function loadRazorpayScript(): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (window.Razorpay) return resolve(true);
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+}
+
 function CheckoutPage() {
   const items = useCartStore((s) => s.items);
   const total = useCartStore((s) => s.totalPrice());
@@ -29,15 +48,86 @@ function CheckoutPage() {
   const [payment, setPayment] = useState<Payment>("cod");
   const [placed, setPlaced] = useState(false);
   const [orderId, setOrderId] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (items.length === 0) return;
-    const id = "ZF" + Math.floor(100000 + Math.random() * 900000);
+  // ✅ Form field refs for prefill
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const handleOrderSuccess = (id: string) => {
     setOrderId(id);
     setPlaced(true);
     clearCart();
     toast.success("Order placed!", { description: `Order #${id} confirmed.` });
+  };
+
+  // ✅ Open Razorpay payment modal
+  const openRazorpay = async () => {
+    setLoading(true);
+    const loaded = await loadRazorpayScript();
+
+    if (!loaded) {
+      toast.error("Payment failed to load. Please check your internet connection.");
+      setLoading(false);
+      return;
+    }
+
+    const id = "ZF" + Math.floor(100000 + Math.random() * 900000);
+
+    const options = {
+      // ✅ REPLACE THIS WITH YOUR RAZORPAY KEY ID
+      key: "rzp_test_Sk5cEZyARqpGY6",
+      amount: Math.round(total * 100), // Razorpay needs paise (₹1 = 100 paise)
+      currency: "INR",
+      name: "Ziffy",
+      description: "Gift Order #" + id,
+      image: "/favicon.ico",
+      handler: function () {
+        // ✅ Payment successful
+        handleOrderSuccess(id);
+      },
+      prefill: {
+        name: name,
+        email: email,
+        contact: phone,
+      },
+      notes: {
+        order_id: id,
+      },
+      theme: {
+        color: "#E91E8C", // Ziffy pink
+      },
+      modal: {
+        ondismiss: function () {
+          setLoading(false);
+          toast.error("Payment cancelled. Please try again.");
+        },
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.on("payment.failed", function () {
+      toast.error("Payment failed. Please try again or use a different method.");
+      setLoading(false);
+    });
+
+    rzp.open();
+    setLoading(false);
+  };
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (items.length === 0) return;
+
+    if (payment === "online") {
+      // ✅ Open Razorpay for online payment
+      openRazorpay();
+    } else {
+      // ✅ Cash on Delivery — place order directly
+      const id = "ZF" + Math.floor(100000 + Math.random() * 900000);
+      handleOrderSuccess(id);
+    }
   };
 
   if (placed) {
@@ -89,15 +179,38 @@ function CheckoutPage() {
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="name">Full name</Label>
-                <Input id="name" required className="mt-1.5 rounded-xl h-11" placeholder="Your name" />
+                <Input
+                  id="name"
+                  required
+                  className="mt-1.5 rounded-xl h-11"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
               <div>
                 <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" required type="tel" className="mt-1.5 rounded-xl h-11" placeholder="+91 ..." />
+                <Input
+                  id="phone"
+                  required
+                  type="tel"
+                  className="mt-1.5 rounded-xl h-11"
+                  placeholder="+91 ..."
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                />
               </div>
               <div className="sm:col-span-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" required type="email" className="mt-1.5 rounded-xl h-11" placeholder="you@example.com" />
+                <Input
+                  id="email"
+                  required
+                  type="email"
+                  className="mt-1.5 rounded-xl h-11"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </div>
             </div>
           </div>
@@ -185,8 +298,12 @@ function CheckoutPage() {
               </div>
             </div>
 
-            <Button type="submit" className="w-full mt-5 rounded-full bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-soft h-12 text-base">
-              Place Order
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-5 rounded-full bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-soft h-12 text-base"
+            >
+              {loading ? "Processing..." : payment === "online" ? "Pay Now" : "Place Order"}
             </Button>
             <p className="mt-3 text-xs text-muted-foreground text-center flex items-center justify-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5" /> Secured &amp; encrypted checkout
