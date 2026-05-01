@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { ProductCard } from "@/components/product/ProductCard";
-import { categories, getProductsByCategory, type Category } from "@/data/products";
+import { categories, type Category } from "@/data/products";
+import { useProductsStore } from "@/stores/productsStore";
 
 export const Route = createFileRoute("/category/$slug")({
   component: CategoryPage,
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/category/$slug")({
 function CategoryPage() {
   const { slug } = Route.useParams();
   const cat = categories.find((c) => c.slug === slug)!;
-  const items = getProductsByCategory(slug as Category);
+  const items = useProductsStore((s) => s.products.filter((p) => p.category === (slug as Category)));
 
   return (
     <div className="container mx-auto px-4 md:px-6 py-12 md:py-16">
