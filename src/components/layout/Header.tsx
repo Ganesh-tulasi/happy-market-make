@@ -9,6 +9,7 @@ const navLinks = [
   { to: "/category/bouquets", label: "Bouquets" },
   { to: "/category/cups", label: "Cups" },
   { to: "/category/combos", label: "Combos" },
+  { to: "/admin", label: "Admin" },
 ] as const;
 
 export function Header() {
