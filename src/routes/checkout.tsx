@@ -62,7 +62,6 @@ function CheckoutPage() {
     toast.success("Order placed!", { description: `Order #${id} confirmed.` });
   };
 
-  // ✅ Open Razorpay payment modal
   const openRazorpay = async () => {
     setLoading(true);
     const loaded = await loadRazorpayScript();
@@ -73,35 +72,55 @@ function CheckoutPage() {
       return;
     }
 
-    const id = "ZF" + Math.floor(100000 + Math.random() * 900000);
+    const receipt = "ZF" + Math.floor(100000 + Math.random() * 900000);
+    const amountPaise = Math.max(100, Math.round(total * 100));
+
+    let order: { order_id: string; amount: number; currency: string; key_id: string };
+    try {
+      order = await createRazorpayOrder({
+        data: { amount: amountPaise, currency: "INR", receipt },
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Could not initiate payment. Please try again.");
+      setLoading(false);
+      return;
+    }
 
     const options = {
-      // ✅ REPLACE THIS WITH YOUR RAZORPAY KEY ID
-      key: "rzp_test_Sk5cEZyARqpGY6",
-      amount: Math.round(total * 100), // Razorpay needs paise (₹1 = 100 paise)
-      currency: "INR",
+      key: order.key_id,
+      amount: order.amount,
+      currency: order.currency,
+      order_id: order.order_id,
       name: "Ziffy",
-      description: "Gift Order #" + id,
+      description: "Gift Order " + receipt,
       image: "/favicon.ico",
-      handler: function () {
-        // ✅ Payment successful
-        handleOrderSuccess(id);
+      handler: async function (response: {
+        razorpay_payment_id: string;
+        razorpay_order_id: string;
+        razorpay_signature: string;
+      }) {
+        try {
+          const result = await verifyRazorpayPayment({ data: response });
+          if (result.success) {
+            handleOrderSuccess(receipt);
+          } else {
+            toast.error("Payment verification failed. Please contact support.");
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error("Payment verification error.");
+        } finally {
+          setLoading(false);
+        }
       },
-      prefill: {
-        name: name,
-        email: email,
-        contact: phone,
-      },
-      notes: {
-        order_id: id,
-      },
-      theme: {
-        color: "#E91E8C", // Ziffy pink
-      },
+      prefill: { name, email, contact: phone },
+      notes: { receipt },
+      theme: { color: "#E91E8C" },
       modal: {
         ondismiss: function () {
           setLoading(false);
-          toast.error("Payment cancelled. Please try again.");
+          toast.error("Payment cancelled.");
         },
       },
     };
@@ -113,7 +132,6 @@ function CheckoutPage() {
     });
 
     rzp.open();
-    setLoading(false);
   };
 
   const onSubmit = (e: React.FormEvent) => {
