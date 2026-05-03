@@ -133,7 +133,7 @@ function Index() {
           <p className="mt-3 opacity-95">
             Order before 2 PM for same-day delivery within the city.
           </p>
-          <Link to="/category/combos">
+          <Link to="/category/$slug" params={{ slug: "combos" }}>
             <Button size="lg" className="mt-7 rounded-full bg-card text-primary hover:bg-card/90 h-12 px-8 shadow-soft">
               Start Gifting
             </Button>
