@@ -126,8 +126,13 @@ function CheckoutPage() {
     };
 
     const rzp = new window.Razorpay(options);
-    rzp.on("payment.failed", function () {
-      toast.error("Payment failed. Please try again or use a different method.");
+    rzp.on("payment.failed", function (response: any) {
+      console.error("Razorpay payment.failed:", response?.error);
+      const reason =
+        response?.error?.description ||
+        response?.error?.reason ||
+        "Payment failed. Please try again or use a different method.";
+      toast.error(reason);
       setLoading(false);
     });
 
