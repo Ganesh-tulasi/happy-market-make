@@ -31,8 +31,9 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
-              key={link.to}
+              key={link.label}
               to={link.to}
+              params={link.slug ? { slug: link.slug } : undefined}
               className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth"
               activeProps={{ className: "text-primary font-semibold" }}
               activeOptions={{ exact: link.to === "/" }}
