@@ -39,12 +39,12 @@ function Index() {
               personalized with their name, your message, and the moment.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/category/chocolates">
+              <Link to="/category/$slug" params={{ slug: "chocolates" }}>
                 <Button size="lg" className="rounded-full bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-soft h-12 px-6">
                   Shop Now <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/category/combos">
+              <Link to="/category/$slug" params={{ slug: "combos" }}>
                 <Button size="lg" variant="outline" className="rounded-full h-12 px-6 border-border bg-card hover:bg-accent">
                   Explore Combos
                 </Button>
