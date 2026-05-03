@@ -39,12 +39,12 @@ function Index() {
               personalized with their name, your message, and the moment.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/category/chocolates">
+              <Link to="/category/$slug" params={{ slug: "chocolates" }}>
                 <Button size="lg" className="rounded-full bg-gradient-primary text-primary-foreground hover:opacity-90 shadow-soft h-12 px-6">
                   Shop Now <ArrowRight className="ml-1 h-4 w-4" />
                 </Button>
               </Link>
-              <Link to="/category/combos">
+              <Link to="/category/$slug" params={{ slug: "combos" }}>
                 <Button size="lg" variant="outline" className="rounded-full h-12 px-6 border-border bg-card hover:bg-accent">
                   Explore Combos
                 </Button>
@@ -133,7 +133,7 @@ function Index() {
           <p className="mt-3 opacity-95">
             Order before 2 PM for same-day delivery within the city.
           </p>
-          <Link to="/category/combos">
+          <Link to="/category/$slug" params={{ slug: "combos" }}>
             <Button size="lg" className="mt-7 rounded-full bg-card text-primary hover:bg-card/90 h-12 px-8 shadow-soft">
               Start Gifting
             </Button>

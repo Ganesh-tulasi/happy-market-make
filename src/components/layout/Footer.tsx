@@ -22,10 +22,10 @@ export function Footer() {
         <div>
           <h4 className="font-display text-lg mb-4">Shop</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li><Link to="/category/chocolates" className="hover:text-primary transition-smooth">Chocolates</Link></li>
-            <li><Link to="/category/bouquets" className="hover:text-primary transition-smooth">Bouquets</Link></li>
-            <li><Link to="/category/cups" className="hover:text-primary transition-smooth">Cups</Link></li>
-            <li><Link to="/category/combos" className="hover:text-primary transition-smooth">Combos</Link></li>
+            <li><Link to="/category/$slug" params={{ slug: "chocolates" }} className="hover:text-primary transition-smooth">Chocolates</Link></li>
+            <li><Link to="/category/$slug" params={{ slug: "bouquets" }} className="hover:text-primary transition-smooth">Bouquets</Link></li>
+            <li><Link to="/category/$slug" params={{ slug: "cups" }} className="hover:text-primary transition-smooth">Cups</Link></li>
+            <li><Link to="/category/$slug" params={{ slug: "combos" }} className="hover:text-primary transition-smooth">Combos</Link></li>
           </ul>
         </div>
 

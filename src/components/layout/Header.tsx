@@ -4,12 +4,12 @@ import { useCartStore } from "@/stores/cartStore";
 import { Button } from "@/components/ui/button";
 
 const navLinks = [
-  { to: "/", label: "Home" },
-  { to: "/category/chocolates", label: "Chocolates" },
-  { to: "/category/bouquets", label: "Bouquets" },
-  { to: "/category/cups", label: "Cups" },
-  { to: "/category/combos", label: "Combos" },
-  { to: "/admin", label: "Admin" },
+  { to: "/", label: "Home", slug: undefined },
+  { to: "/category/$slug", label: "Chocolates", slug: "chocolates" },
+  { to: "/category/$slug", label: "Bouquets", slug: "bouquets" },
+  { to: "/category/$slug", label: "Cups", slug: "cups" },
+  { to: "/category/$slug", label: "Combos", slug: "combos" },
+  { to: "/admin", label: "Admin", slug: undefined },
 ] as const;
 
 export function Header() {
@@ -31,8 +31,9 @@ export function Header() {
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => (
             <Link
-              key={link.to}
+              key={link.label}
               to={link.to}
+              params={link.slug ? { slug: link.slug } : undefined}
               className="text-sm font-medium text-foreground/80 hover:text-primary transition-smooth"
               activeProps={{ className: "text-primary font-semibold" }}
               activeOptions={{ exact: link.to === "/" }}
