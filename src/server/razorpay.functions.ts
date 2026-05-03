@@ -18,26 +18,32 @@ export const createRazorpayOrder = createServerFn({ method: "POST" })
     }
 
     const auth = Buffer.from(`${keyId}:${keySecret}`).toString("base64");
-    const res = await fetch("https://api.razorpay.com/v1/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Basic ${auth}`,
-      },
-      body: JSON.stringify({
-        amount: data.amount,
-        currency: data.currency,
-        receipt: data.receipt,
-      }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      console.error("Razorpay order creation failed:", res.status, text);
-      throw new Error("Failed to create payment order");
+    let res: Response;
+    try {
+      res = await fetch("https://api.razorpay.com/v1/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${auth}`,
+        },
+        body: JSON.stringify({
+          amount: data.amount,
+          currency: data.currency,
+          receipt: data.receipt,
+        }),
+      });
+    } catch (err) {
+      console.error("Razorpay fetch threw:", err);
+      throw new Error("Network error contacting Razorpay");
     }
 
-    const order = (await res.json()) as { id: string; amount: number; currency: string };
+    const text = await res.text();
+    if (!res.ok) {
+      console.error("Razorpay order creation failed:", res.status, text);
+      throw new Error(`Razorpay ${res.status}: ${text}`);
+    }
+
+    const order = JSON.parse(text) as { id: string; amount: number; currency: string };
     return {
       order_id: order.id,
       amount: order.amount,
