@@ -8,8 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCartStore } from "@/stores/cartStore";
 import { formatPrice } from "@/data/products";
 import { toast } from "sonner";
+import { createRazorpayOrder, verifyRazorpayPayment } from "@/server/razorpay.functions";
 
-// ✅ Razorpay type declaration
 declare global {
   interface Window {
     Razorpay: any;
